@@ -38,3 +38,18 @@ IMAGE_INSTALL:append = " \
     rust-hello-world \
 "
 ```
+
+- Ya con las configuraciones ejecutadas, se procede a cocinar la imagen. Esta luego se prueba usando el comando `runeqemu genericx86-64`. En esta se comprueba que están disponibles los programas deseados, además de que se prueba el python y el rust, tal como se muestra a continuación:
+
+<figure style="text-align: center; margin: 20px auto;">
+  <img src="Imágenes/Comprobacion.png" alt="Placeholder" 
+       style="width: 600px; height: auto; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+  <figcaption style="font-style: italic; color: #666;">Comprobación de imagen mínima con Rust y Python</figcaption>
+</figure>
+
+- Finalmente se prueba la imagen desde VirtualBox, y se comprueba su correcto funcionamiento.
+<figure style="text-align: center; margin: 20px auto;">
+  <img src="Imágenes/Comprobacion_VM.png" alt="Placeholder" 
+       style="width: 600px; height: auto; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+  <figcaption style="font-style: italic; color: #666;">Comprobación de imagen mínima con Rust y Python, en VirtualBox</figcaption>
+</figure>
