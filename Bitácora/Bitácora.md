@@ -248,31 +248,28 @@ En base a los requerimientos del proyecto, se hizo un breve resumen de criterios
 - __1. Compatibilidad con Rust:__
 El repositorio debe estar escrito en **Rust** o ser fácilmente adaptable, utilizando preferentemente el crate `opencv` para acceder a las funciones nativas de visión por computadora.
 
-- __2. Tríada Funcional Obligatoria__
+- __2. Tríada Funcional Obligatoria:__
 El modelo seleccionado debe permitir la integración de tres capacidades clave:
 - **Captura** de imágenes o video
 - **Procesamiento** de imágenes o video
 - **Visualización** de imágenes o video
 
-- __3. Desempeño en Tiempo Casi Real__
+- __3. Desempeño en Tiempo Casi Real:__
 El código debe ser lo suficientemente eficiente para ejecutarse en **tiempo casi real** dentro de una máquina virtual x86 en VirtualBox.
 
-- __4. Modularidad de OpenCV__
+- __4. Modularidad de OpenCV:__
 Se recomienda que el ejemplo utilice módulos específicos de OpenCV:
 - `imgproc`
 - `videoio`
 - `dnn`
 
-Esto permite habilitar solo lo necesario en Yocto, optimizando el tamaño y las dependencias de la imagen final.
-
-- __5. Claridad para Documentar Casos de Uso__
+- __5. Claridad para Documentar Casos de Uso:__
 El repositorio debe servir como base para definir:
 - El **concepto de operaciones**
 - Los **casos de uso** del proyecto
 
-Esto es parte fundamental de la evaluación técnica y la documentación del proyecto.
 
-__6. Facilidad de Identificación de Dependencias__
+__6. Facilidad de Identificación de Dependencias:__
 El código debe permitir identificar claramente qué bibliotecas del sistema operativo son necesarias, para poder:
 - Consolidar correctamente las **recetas de Yocto**
 - Integrar **Cargo** en el flujo de construcción
