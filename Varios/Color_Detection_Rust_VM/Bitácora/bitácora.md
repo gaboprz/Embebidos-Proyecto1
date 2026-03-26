@@ -60,3 +60,70 @@ bitbake-layers add-layer ../meta-clang
 ### Errores / Problemas
 - Fallo con el `cargo build`, específicamente con el `opencv`.
 - Falta dependencia `clang` al cocinar la receta con el código de rust.
+
+
+## 26/03/2026
+- El último día de trabajo se consiguió cocinar la imagen mínima con el código de Rust, ver si este funciona es la primera comprobación que se busca hacer.
+
+- Antes de probar esto, se decide crear una receta sencilla, que simplemente sea un atajo para poder ingresar el comando que reproduce el video dentro de la VM. La receta se llama `video-player-cmd` y su árbol está conformado por:
+
+```bash
+meta-proyecto1/
+└── recipes-apps/
+    └── video-player-cmd/
+        ├── video-player-cmd.bb
+        └── files/
+            └── reproducir_video.sh
+```
+
+- Dentro de la imagen se logra comprobar que al ejecutar el binario creado del código en rust, se crea de manera satisfactoria el video ya con la intervención de dicho código. Dentro de la VM el código se ejecuta con `/usr/bin/detector-colores-rust-VM /usr/share/videos/video2.mp4`. Luego de eso, se reproduce el video con el comando `reproducir-video /tmp/video_procesado.avi`. Esto se puede observar a continuación:
+
+<figure style="text-align: center; margin: 20px auto;">
+  <img src="Imágenes/detector_color_rust_VM.png" alt="Placeholder" 
+       style="width: 700px; height: auto; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+  <figcaption style="font-style: italic; color: #666;">Detección de un color usando código de rust, dentro de VirtualBox</figcaption>
+</figure>
+
+- Dentro del `local.conf` las líneas agregadas quedan como:
+
+```bash
+IMAGE_FSTYPES += "wic.vmdk wic iso"
+#IMAGE_FSTYPES += "vmdk"
+
+# Limitar el uso de CPU durante la construcción
+BB_NUMBER_PARSE_THREADS ?= "1"
+BB_NUMBER_THREADS ?= "2"
+PARALLEL_MAKE ?= "-j 2"
+
+IMAGE_INSTALL:append = " \
+        opencv \
+        gstreamer1.0 \
+        gstreamer1.0-plugins-base \
+        gstreamer1.0-plugins-good \
+        gstreamer1.0-plugins-bad \
+        gstreamer1.0-libav \
+        gstreamer1.0-plugins-ugly \
+        video2 \
+        reconocimiento-colores-rust \
+	video-player-cmd \
+    "
+    
+LICENSE_FLAGS_ACCEPTED = "commercial"
+```
+
+- Mientras que dentro del `bblayers.conf` las líneas agregadas quedan como:
+
+```bash
+BBLAYERS ?= " \
+  /home/gabo/poky/meta \
+  /home/gabo/poky/meta-poky \
+  /home/gabo/poky/meta-yocto-bsp \
+  /home/gabo/poky/build/meta-proyecto1 \
+  /home/gabo/poky/meta-openembedded/meta-oe \
+  /home/gabo/poky/meta-rust-bin \
+  /home/gabo/poky/meta-clang \
+  "
+```
+
+### Errores / Problemas
+- En un descuido se creó la imagen sin haber cambiado la receta del reconocimiento de colores, por lo que se agregó nuevamente la de python en lugar de la de rust.
