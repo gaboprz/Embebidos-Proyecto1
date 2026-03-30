@@ -1,0 +1,252 @@
+# Tutorial del proyecto I - Taller de Sistemas Embebidos
+### Gabriel Pérez Ramírez - Katherine Salazar Martínez
+
+En el presente documento se muestra el paso a paso que permite replicar los resultados obtenidos en el proyecto I del curso. En este se logra diseñar una imagen basada en Linux, la cual está hecha a la medida para poder soportar archivos multimedia y poder entonces aplicarles un código basado en Rust y OpenCV para poder obtener un resultado también en formato de multimedia, [[1]](#cite_1). Los dos enfoques principales es la de la correcta configuración del ambiente de Yocto Project, además de la explicación de la aplicación en sí, la cual se escribe en Rust y utiliza OpenCV.
+
+## 1. Yocto Project
+
+Yocto es un proyecto de código abierto, el cual ayuda a crear sistemas totalmente personalizados basados en Linux, independientemente de la arquitectura del hardware, [[2]](#cite_2). Este permite crear imágenes hechas a la medida para distintas aplicaciones, entre estas, sistemas embebidos con capacidades limitadas, o simplemente un sistema en el que se quiere aprovechar la totalidad de los recursos en las aplicaciones de importancia, sin estar corriendo tareas innecesarias en segundo plano.
+
+### 1.1 Yocto en máquina local
+
+Lo primero que hay que hacer es preparar el ambiente que va a permitir generar las imágenes personalizadas. Para esto se va a seguir la página oficial de [Yocto](https://docs.yoctoproject.org/kirkstone/brief-yoctoprojectqs/index.html). Importante que hay que cumplir con algunos requisitos mínimos, como tener Git 1.8.3.1 o más nuevo, Python 3.6.0 o más reciente, entre otros.
+
+Se va a usar la versión de **Kirkstone 4.0.34**. Para esto se debe ejecutar el comando:
+
+```bash
+sudo apt install build-essential chrpath cpio debianutils diffstat file gawk gcc git iputils-ping libacl1 liblz4-tool locales python3 python3-git python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip wget xz-utils zstd
+```
+
+En seguida se muestra la función de cada paquete descargado con este comando. Mencionar que esta sección se ordena con ayuda de IA, [[3]](#cite_3).
+
+- **Herramientas de compilación básicas:**
+  - `build-essential`: Incluye herramientas básicas.
+  - `gcc`: Compilador gcc de C/C++. Esto dado que Yocto compila todo desde código fuente.
+
+- **Manejo de archivos, binarios y empaquetado:**
+  - `cpio`: crear/extraer archivos.
+  - `chrpath`: modifica rutas de librerías en binarios.
+  - `diffstat`: muestra estadísticas de parches.
+  - `file`: detecta tipo de archivo.
+  - `unzip`, `xz-utils`, `zstd`, `liblz4-tool`: descompresión de paquetes.
+
+- **Utilidades del sistema:**
+  - `debianutils`: herramientas básicas del sistema Debian.
+  - `libacl1`: soporte de permisos avanzados (ACL).
+  - `locales`: manejo de idiomas/regiones.
+
+- **Red y descarga de recursos:**
+  - `git`: descarga repositorios (como Poky).
+  - `wget`: descarga archivos.
+  - `ping`: pruebas de conectividad.
+
+- **Entorno de Python:**
+  - `python3`: lenguaje base de BitBake.
+  - `pip`: gestor de paquetes Python.
+  - `jinja2`: templates (usado en configuraciones).
+  - `pexpect`: automatización de procesos.
+  - `python3-git`: interacción con git desde Python.
+  - `subunit`: testing.
+
+- **Comunicación y utilidades adicionales:**
+  - `socat`: comunicación entre procesos/sockets.
+  - `texinfo`: generación de documentación.
+
+
+Luego se debe clonar el repositorio de Poky en la PC del usuario, esto con:
+
+```bash
+git clone git://git.yoctoproject.org/poky
+```
+
+Dado que se está usando la versión **Kirkstone 4.0.34**, hay que pasarse a la rama correspondiente, tal que:
+
+```bash
+git checkout -t origin/kirkstone -b my-kirkstone
+```
+
+Ya con el ambiente preparado, es importante comprobar que la instalación de todo está funcionando de manera correcta. Para esto, hay que ubicarse dentro de la carpeta `poky`, y dentro de esta se va a generar una imagen de prueba, tal que:
+
+```bash
+# Inicializa el ambiente
+source oe-init-build-env
+
+# Cocina una imagen mínima
+bitbake core-image-sato
+
+# Se simula el funcionamiento de la imagen usando QEMU
+runqemu qemux86-64
+```
+
+### 1.2 Sistema objetivo
+
+Hay que especificar el sistema o la arquitectura del SO para la que se quiere diseñar la imagen. Para hacer esto, hay que acceder al archivo `local.conf`, el cual se encuentra en la ruta:
+
+```bash
+poky
+└── build
+    └── conf
+        ├── bblayers.conf
+        ├── local.conf
+        └── templateconf.cfg
+```
+
+Dentro de este hay una sección llamada ***# Machine Selection***, en la que es necesario que únicamente las siguientes dos líneas se encuentren sin comentar:
+
+```bash
+MACHINE ?= "genericx86-64"
+MACHINE ??= "qemux86-64"
+```
+Con esto se indica que la imagen debe ser compatible con la arquitectura x86 de 64 bits, esto en un estilo genérico. La otra línea se deja sin comentar, dado que es la opción por defecto, en caso de que las demás líneas estén comentadas.
+
+### 1.3 Capas (***Layers***) necesarias
+
+Las capas, dentro del contexto de Yocto Project, son conjuntos de recetas disponibles, las cuales se pueden importar a la imagen objetivo, esto para darle capacidades específicas. Las capas incluidas al proyecto se encuentran en el archivo `bblayers.conf`, el cual se encuentra en la ruta:
+
+```bash
+poky
+└── build
+    └── conf
+        ├── bblayers.conf
+        ├── local.conf
+        └── templateconf.cfg
+```
+
+Algunos comandos importantes para el manejo de capas se muestran en seguida. Mencionar que es necesario que el ambiente esté inicializado, por lo que hay que correr `source oe-init-build-env`, estando dentro de la carpeta de ***poky***.
+
+```bash
+# Muestra qué layers están cargadas en el proyecto
+bitbake-layers show-layers
+
+# Crea un layer nuevo
+bitbake-layers create-layer meta-mi-layer
+
+# Añade un layer al proyecto. Al usarlo, se muestra el nuevo layer en el documento `bblayers.conf`
+bitbake-layers add-layer ../meta-mi-layer
+
+# Elimina un layer del proyecto. Al usarlo, se quita el layer del documento `bblayers.conf`
+bitbake-layers remove-layer ../meta-mi-layer
+```
+
+Ahora, se muestran las capas incluidas para la elaboración de la imagen, para luego explicar para qué se usan, además del proceso seguido para obtenerlas, esto en caso de ser necesario. Dentro del archivo `bblayers.conf` se encuentra:
+
+```bash
+BBLAYERS ?= " \
+  /home/gabo/poky/meta \
+  /home/gabo/poky/meta-poky \
+  /home/gabo/poky/meta-yocto-bsp \
+  /home/gabo/poky/build/meta-proyecto1 \
+  /home/gabo/poky/meta-openembedded/meta-oe \
+  /home/gabo/poky/meta-rust-bin \
+  /home/gabo/poky/meta-clang \
+  "
+```
+
+- `meta`: Capa que viene por defecto. Aquí viven la metadata base mínima, contiene recetas fundamentales.
+- `meta-poky`: Capa que viene por defecto. Esta es la capa de política de distribución de Poky. Define la configuración general de la distro `poky`, incluyendo decisiones sobre cómo se construye la imagen.
+- `meta-yocto-bsp`: Es la capa BSP (Board Support Package) de referencia incluida con Poky. Mantiene máquinas como la `genericx86`, que es la que se está usando.
+- `meta-proyecto1`: Capa personalizada. Esta se creó con el fin de incluir las recetas particulares que se necesiten en la imagen, como el código en Rust o el video sobre el cual el código va a actuar.
+- `meta-openembedded/meta-oe`: Capa que proviene del proyecto OpenEmbedded. Esta se incluye para poder usar el material de OpenCV. Para poder añadir esta capa al proyecto hay que usar los siguientes comandos:
+
+```bash
+# Estando dentro de poky usar
+source oe-init-build-env
+
+# Clona los componentes de la capa dentro del repositorio local de poky
+git clone -b kirkstone https://github.com/openembedded/meta-openembedded.git
+
+# Añade la capa que se necesita al archivo bblayers.conf
+bitbake-layers add-layer ../meta-openembedded/meta-oe
+```
+- `meta-rust-bin`: Esta capa provee toolchains de Rust ya precompiladas. La razón de usar esta capa es la de compilar aplicaciones Rust con Cargo durante el build, con esto no es necesario agregar el compilador completo de Rust dentro de la imagen final. Para poder añadir esta capa al proyecto hay que usar los siguientes comandos:
+
+```bash
+# Estando dentro de poky usar
+source oe-init-build-env
+
+# Clona los componentes de la capa dentro del repositorio local de poky
+git clone https://github.com/rust-embedded/meta-rust-bin.git
+
+# Añade la capa que se necesita al archivo bblayers.conf
+bitbake-layers add-layer ../meta-rust-bin
+```
+
+- `meta-clang`: Esta capa aporta el soporte de clang/llvm como cross compiler. Se añade dado que a la hora de cocinar la receta del código, el generador de bindings de OpenCV para Rust la solicitó. Para poder añadir esta capa al proyecto hay que usar los siguientes comandos:
+
+```bash
+# Estando dentro de poky usar
+source oe-init-build-env
+
+# Clona los componentes de la capa dentro del repositorio local de poky
+git clone -b kirkstone https://github.com/kraj/meta-clang.git
+
+# Añade la capa que se necesita al archivo bblayers.conf
+bitbake-layers add-layer ../meta-clang
+```
+
+### 1.4 Recetas (***Recipes***) necesarias
+
+Las recetas son las instrucciones precisas que le dicen al sistema cómo cocinar un componente específico de software, en este caso, cómo cocinar la imagen. Estas se encuentran en un archivo de texto con extensión .bb. Este contiene metadatos y una serie de pasos lógicos que describen el ciclo de vida de un paquete de software. Estas indican dónde está el código fuente, qué dependencias deben estar listas antes de empezar a compilar el componente, ejecuta comandos necesarios para la compilación y genera archivos finales (binarios, archivos de configuración, entre otros).
+
+Las recetas incluidas al proyecto se encuentran en el archivo `local.conf`, el cual se encuentra en la ruta:
+
+```bash
+poky
+└── build
+    └── conf
+        ├── bblayers.conf
+        ├── local.conf
+        └── templateconf.cfg
+```
+
+Algunos comandos importantes para el manejo de recetas se muestran en seguida. Mencionar que es necesario que el ambiente esté inicializado, por lo que hay que correr `source oe-init-build-env`, estando dentro de la carpeta de ***poky***.
+
+```bash
+# Muestra las recetas disponibles y el layer que las provee
+bitbake-layers show-recipes
+
+# Cocina una receta de manera individual
+bitbake <receta>
+
+# Limpia los resultados de compilación, dejando la compilación desde cero.
+bitbake <receta> -c cleansstate
+```
+
+Ahora, se van a mostrar las recetas que están incluidas en la generación de la imagen. Estas se encuentran casi al final del documento `local.conf`. Luego de esto, se indica de qué layer proviene cada receta, porqué se está usando y en caso de que sea necesario, cómo crearla.
+
+```bash
+IMAGE_INSTALL:append = " \
+        opencv \
+        gstreamer1.0 \
+        gstreamer1.0-plugins-base \
+        gstreamer1.0-plugins-good \
+        gstreamer1.0-plugins-bad \
+        gstreamer1.0-libav \
+        gstreamer1.0-plugins-ugly \
+        video2 \
+        reconocimiento-colores-rust \
+	    video-player-cmd \
+    "
+```
+
+- `opencv`: Proviene de `meta-openembedded/meta-oe`. Se usa dado que la aplicación en Rust usa OpenCV para leer y procesar el video. Es la librería central que se usa para realizar la visión por computador.
+- `gstreamer1.0`: Proviene de `meta`. Es la base del framework multimedia. Se usa para poder abrir el video en la VM.
+- `gstreamer1.0-plugins-base`: Proviene de `meta`. Incluye elementos esenciales, como soporte base para leer, convertir y manejar streams multimedia.
+- `gstreamer1.0-plugins-good`: Proviene de `meta`. Añade demuxers, decodificadores y elementos comunes que permiten abrir videos de formato MP4.
+- `gstreamer1.0-plugins-bad`: Proviene de `meta`. Amplía el soporte de formatos multimedia.
+- `gstreamer1.0-libav`: Proviene de `meta`. Agrega soporte de decodificación adicional, útil para formatos que no siempre se cubren por los plugins base o good.
+- `gstreamer1.0-plugins-ugly`: Proviene de `meta`. Amplía aún más el soporte multimedia.
+- `video2`: Proviene de `meta-proyecto1`. Agrega el video dentro de la imagen, para que se pueda acceder a este dentro de la VM.
+- `reconocimiento-colores-rust`: Proviene de `meta-proyecto1`. Es la aplicación de Rust principal, encargada de procesar el video y generar un resultado ya listo. Este se agrega a la imagen como un archivo binario.
+- `video-player-cmd`: Proviene de `meta-proyecto1`. Instala un comando corto y fácil de usar dentro de la VM, que encapsula el pipeline largo de Gstreamer, el cual se usa para reproducir el video.
+
+## #. Bibliografía
+
+<a id="cite_1"></a>
+[1] J. Carvajal Godínez, "I Proyecto: Sistema operativo a la medida para aplicaciones embebidas con la biblioteca OpenCV en RUST con el marco de trabajo de Yocto Project," Instituto Tecnológico de Costa Rica, Escuela de Ingeniería Electrónica, Cartago, Costa Rica, Instructivo de Proyecto, I Semestre 2026.
+
+<a id="cite_2"></a>
+[2] "The Yocto Project," Yocto Project, 2024. [En línea]. Disponible en: https://www.yoctoproject.org/. [Accedido: 29-mar-2026].
+
+<a id="cite_3"></a>
+[3] OpenAI, "ChatGPT," (versión Mar 29), [Software], 2026. Disponible en: https://chatgpt.com/. [Accedido: 29-mar-2026].
