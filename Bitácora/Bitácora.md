@@ -479,3 +479,11 @@ BBLAYERS ?= " \
 - Luego se inicia y acaba la parte dedicada a la herramienta Oracle VirtualBox.
 
 ### Errores / Problemas
+
+## **Fecha: 31/03/2026** - **Participante: Gabriel**
+
+- Ya se tiene el código en rust del laplaciano, que es la aplicación que se busca implementar dentro de la máquina virtual. Este se encuentra funcional para la computadora local, pero se debe adaptar para funcionar sin interfaz gráfica, por lo que se le quitan las funciones que usan `highgui`. También se hace que como resultante genere un video procesado por el código.
+- Luego de tener el código y los archivos de cargo listos, se crea la receta de manera similar a la última de rust, la que detecta colores. Lo primero es crear el árbol de carpetas, ajustando los nombres. Luego se añade el contenido del main y los cargo en su respectivo equivalente. Después se pone a cocinar la receta y se añade dentro del `local.conf`.
+- Después se cocina la imagen mínima nuevamente. Con esta lista, se prueba dentro del VirtualBox, en donde se confirma el correcto funcionamiento de esta.
+
+### Errores / Problemas

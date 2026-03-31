@@ -1,4 +1,4 @@
-SUMMARY = "Detección de color en video con Rust y OpenCV"
+SUMMARY = "Detección de bordes en video con Rust y OpenCV"
 LICENSE = "CLOSED"
 
 SRC_URI = "file://Cargo.toml \

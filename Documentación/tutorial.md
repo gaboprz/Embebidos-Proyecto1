@@ -232,7 +232,7 @@ IMAGE_INSTALL:append = " \
         gstreamer1.0-libav \
         gstreamer1.0-plugins-ugly \
         video2 \
-        reconocimiento-colores-rust \
+        laplaciano-rust \
 	    video-player-cmd \
     "
 ```
@@ -318,26 +318,26 @@ source oe-init-build-env
 bitbake video2
 ```
 
-- `reconocimiento-colores-rust`: Proviene de `meta-proyecto1`. Es la aplicación de Rust principal, encargada de procesar el video y generar un resultado ya listo. Este se agrega a la imagen como un archivo binario.
+- `laplaciano-rust`: Proviene de `meta-proyecto1`. Es la aplicación de Rust principal, encargada de procesar el video y generar un resultado ya listo. Este se agrega a la imagen como un archivo binario.
 
 Lo primero que hay que hacer es crear el árbol con todos los archivos necesarios por la receta, el cual se observa en seguida.
 
 ```bash
 meta-proyecto1/
 └── recipes-apps/
-    └── reconocimiento-colores-rust/
+    └── laplaciano-rust/
         ├── files/
         │   ├── Cargo.lock
         │   ├── Cargo.toml
         │   └── src/
         │       └── main.rs
-        └── reconocimiento-colores-rust.bb
+        └── laplaciano-rust.bb
 ```
 
 El archivo `main.rs` es el código principal de la aplicación. Los dos archivos de `Cargo` se generan al compilar el rust principal. Para que estos se generen hay que seguir lo siguiente:
 
 ```bash
-SUMMARY = "Detección de color en video con Rust y OpenCV"
+SUMMARY = "Detección de bordes en video con Rust y OpenCV"
 LICENSE = "CLOSED"
 
 SRC_URI = "file://Cargo.toml \
@@ -370,7 +370,7 @@ Luego de rellenar el archivo tipo `.bb`, se debe cocinar la receta. Para esto se
 source oe-init-build-env
 
 # Cocinar la receta
-bitbake reconocimiento-colores-rust
+bitbake laplaciano-rust
 ```
 
 - `video-player-cmd`: Proviene de `meta-proyecto1`. Instala un comando corto y fácil de usar dentro de la VM, que encapsula el pipeline largo de Gstreamer, el cual se usa para reproducir el video.
@@ -466,7 +466,7 @@ IMAGE_INSTALL:append = " \
         gstreamer1.0-libav \
         gstreamer1.0-plugins-ugly \
         video2 \
-        reconocimiento-colores-rust \
+        laplaciano-rust \
 	    video-player-cmd \
     "
     
@@ -622,7 +622,7 @@ reproducir_video /usr/share/videos/video2.mp4
 Ahora se quiere correr el archivo binario de rust. Esto se hace con el comando que se muestra en seguida.
 
 ```bash
-detector-colores-rust-VM /usr/share/videos/video2.mp4
+mi-app-opencv /usr/share/videos/video2.mp4
 ```
 Con esto se crea un video ya modificado por el código de rust. Este se guarda en la siguiente ruta:
 
