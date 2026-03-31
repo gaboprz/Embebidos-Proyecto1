@@ -462,3 +462,20 @@ BBLAYERS ?= " \
 
 ### Errores / Problemas
 - En un descuido se creó la imagen sin haber cambiado la receta del reconocimiento de colores, por lo que se agregó nuevamente la de python en lugar de la de rust.
+
+
+## **Fecha: 29/03/2026** - **Participante: Gabriel**
+
+- Se crea un archivo REAME para describir de manera general el repositorio del proyecto.
+- También se inicia el archivo tutorial. En este se avanza en la parte relacionada con el Yocto, desde la creación del poky, hasta las capas que se usan para la elaboración de la imagen.
+
+### Errores / Problemas
+
+
+## **Fecha: 30/03/2026** - **Participante: Gabriel**
+
+- Se revisa el avanza realizado el día anterior.
+- Se termina la parte de Yocto en el tutorial, siendo esto agregar la sección de las recetas, una con configuraciones generales usadas en `local.conf` y la creación propiamente de la imagen mínima.
+- Luego se inicia y acaba la parte dedicada a la herramienta Oracle VirtualBox.
+
+### Errores / Problemas
