@@ -491,5 +491,6 @@ BBLAYERS ?= " \
 ## **Fecha: 02/04/2026** - **Participante: Gabriel**
 
 - Se revisa la documentación de Rust dentro del tutorial, además de releer la documentación de Yocto y de VirtualBox. Se corrigen algunos errores ortográficos y se añade la ruta de los códigos necesarios para la receta del laplaciano, esto en el tutorial de Yocto.
+- Se ajusta el diagrama de flujo de la etapa de Yocto y revisa el de la etapa de Rust y de la máquina virtual.
 
 ### Errores / Problemas
