@@ -172,22 +172,24 @@ Finalmente se abre una ventana de OpenCV con el video2 al cual se le aplica el L
 
 Yocto es un proyecto de código abierto, el cual ayuda a crear sistemas totalmente personalizados basados en Linux, independientemente de la arquitectura del hardware, [[2]](#cite_2). Este permite crear imágenes hechas a la medida para distintas aplicaciones, entre estas, sistemas embebidos con capacidades limitadas, o simplemente un sistema en el que se quiere aprovechar la totalidad de los recursos en las aplicaciones de importancia, sin estar corriendo tareas innecesarias en segundo plano.
 
-A continuación se muestra el diagrama de flujo del proceso:
+A continuación, se muestra el diagrama de flujo del proceso que permitió obtener la imagen funcional:
+
 
 ```mermaid
 flowchart TD
-    A([Inicio del sistema]) --> B[Arranque de imagen Yocto]
-    B --> C[Herramientas disponibles: GStreamer + OpenCV + Rust]
-    C --> D[Video de entrada]
-    D --> E[Ejecución de app en Rust]
-    E --> F[Lectura frame a frame]
-    F --> G[Filtro Laplaciano]
-    G --> H[Frames procesados]
-    H --> I[Construcción de video]
-    I --> J[Video procesado]
-    J --> K[Reproducción con GStreamer]
-    K --> L([Visualización en pantalla])
-
+    A([Inicio]) -->  C[Instalación de dependencias en el Host]
+    C --> D[Clonación de Poky y Meta-layers del proyecto]
+    D --> E[Inicialización del entorno: source oe-init-build-env]
+    
+    E --> F[Edición de conf/local.conf: Selección de MACHINE y recetas]
+    F --> G[Edición de conf/bblayers.conf: Inclusión de capas del repositorio]
+    G --> H[Ejecución de BitBake: Compilación de la receta de imagen]
+    
+    H --> I[Prueba de la imagen generada: QEMU o Hardware]
+    
+    I --> J{¿Funciona correctamente?}
+    J -- No: Depuración / Ajuste --> F
+    J -- Sí --> K([Imagen Final Terminada])
 ```
 
 
