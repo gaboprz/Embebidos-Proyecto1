@@ -69,7 +69,7 @@ cargo --version
 Para crear el proyecto en Rust se requiere seguir los siguientes comandos:
 
 ```bash
-# Creacion del proyecto mi-app-opencv
+# Creación del proyecto mi-app-opencv
 cargo new mi-app-opencv
 
 # Ruta del proyectp
@@ -89,14 +89,14 @@ Cuando se crea el proyecto, su estructura debe ser asi:
 ```
 mi-app-opencv/
 ├── Cargo.toml       # dependencias del proyecto
-├── Cargo.lock       # versiones exactas (generado automaticamente)
+├── Cargo.lock       # versiones exactas (generado automáticamente)
 └── src/
-    └── main.rs      # codigo principal
+    └── main.rs      # código principal
 ```
 
 __Dependencias de__ ```Cargo.toml```
 
-El archivo ```Cargo.toml``` se debe editar e incluir la libreria _OpenCV_ en el proyecto Rust, permitiendo utilzar sus funciones para procesamiento de imagenes y video. Esta dependencia es importandte dado que sin ella, no sería posible utilizar OpenCV desde Rust.
+El archivo ```Cargo.toml``` se debe editar e incluir la librería _OpenCV_ en el proyecto Rust, permitiendo utilizar sus funciones para procesamiento de imágenes y video. Esta dependencia es importante dado que sin ella, no sería posible utilizar OpenCV desde Rust.
 
 Se debe abrir el archivo ```Cargo.toml``` y agregar la siguiente dependencia de OpenCV:
 
@@ -122,7 +122,7 @@ __Descripción de cada parte__
 
 ```main.rs```:
 
-Posteriror a editar el cargo se debe ir a la ruta ```scr/main.rs``` y agregar el codigo fuente que se encuentra en el archivo [main.rs](https://github.com/gaboprz/Embebidos-Proyecto1/blob/main/Rust/mi-app-opencv/src/main.rs) que contiene la lógica principal de la aplicación. 
+Posterior a editar el cargo se debe ir a la ruta ```scr/main.rs``` y agregar el código fuente que se encuentra en el archivo [main.rs](https://github.com/gaboprz/Embebidos-Proyecto1/blob/main/Rust/mi-app-opencv/src/main.rs) que contiene la lógica principal de la aplicación.
 
 
 __Función de cada sección del código__
@@ -148,19 +148,19 @@ La estructura final del proyecto deberia ser asi:
 ```
 mi-app-opencv/
 ├── Cargo.toml       # dependencias del proyecto
-├── Cargo.lock       # versiones exactas (generado automaticamente)
-├── video2.mp4       # video de entrada con figuras geometricas
+├── Cargo.lock       # versiones exactas (generado automáticamente)
+├── video2.mp4       # video de entrada con figuras geométricas
 └── src/
-    └── main.rs      # codigo principal
+    └── main.rs      # código principal
 ```
 
- Una vez confirmemos la estructura final del proyecto podemos proceder a compilar y ejecutar la aplicacion, para esto se usa el siguiente comando:
+ Una vez confirmemos la estructura final del proyecto podemos proceder a compilar y ejecutar la aplicación, para esto se usa el siguiente comando:
  
 ```bash
 cargo run
 ```
 
-Finalmente se habre una ventana de OpenCV con el video2 al cual se le aplica el Laplaciano.
+Finalmente se abre una ventana de OpenCV con el video2 al cual se le aplica el Laplaciano.
 
 
 
@@ -170,7 +170,7 @@ Yocto es un proyecto de código abierto, el cual ayuda a crear sistemas totalmen
 
 ### 2.1 Yocto en máquina local
 
-Lo primero que hay que hacer es preparar el ambiente que va a permitir generar las imágenes personalizadas. Este tutorial sigue los pasos de la documentación oficial de [Yocto](https://docs.yoctoproject.org/kirkstone/brief-yoctoprojectqs/index.html), los cuales ya están incluidos aquí. Importante que hay que cumplir con algunos requisitos mínimos, como tener Git 1.8.3.1 o más nuevo, Python 3.6.0 o más reciente, entre otros.
+Lo primero que hay que hacer es preparar el ambiente que va a permitir generar las imágenes personalizadas. Este tutorial se basa en la documentación oficial de [Yocto](https://docs.yoctoproject.org/kirkstone/brief-yoctoprojectqs/index.html), pero los pasos a seguir se encuentran dentro de este tutorial. Importante que hay que cumplir con algunos requisitos mínimos, como tener Git 1.8.3.1 o más nuevo, Python 3.6.0 o más reciente, entre otros.
 
 Se va a usar la versión de **Kirkstone 4.0.34**. Para esto se debe ejecutar el comando:
 
@@ -495,7 +495,7 @@ meta-proyecto1/
         └── laplaciano-rust.bb
 ```
 
-El archivo `main.rs` es el código principal de la aplicación. Los dos archivos de `Cargo` se generan al compilar el rust principal. Para que estos se generen hay que seguir lo siguiente:
+El archivo `main.rs` es el código principal de la aplicación. Los dos archivos de `Cargo` se generan al compilar el rust principal. El contenido de estos archivos se puede tomar de [Códigos](https://github.com/gaboprz/Embebidos-Proyecto1/tree/Documentacion_Yocto/Yocto/poky/build/meta-proyecto1/recipes-apps/laplaciano-rust). La lógica del archivo `main.rs` usada Yocto y la mostrada en la sección 1 del presente tutorial es la misma. No obstante, la versión en Yocto no usa interfaz gráfica, por lo que se elimina esa parte y se añade una función que genera un video resultante, el cual está procesado por el código. Para que estos se generen hay que seguir lo siguiente:
 
 ```bash
 SUMMARY = "Detección de bordes en video con Rust y OpenCV"
@@ -515,7 +515,7 @@ do_compile[network] = "1"
 DEPENDS += "opencv clang-native llvm-native"
 ```
 
-El contenido de este archivo cumple las mismas funciones que en la receta del video, con una excepciones, las cuales se mencionan a continuación:
+El contenido de este archivo cumple las mismas funciones que en la receta del video, con unas excepciones, las cuales se mencionan a continuación:
 
 `inherit cargo_bin`: Le indica a Yocto que esta receta debe construirse usando soporte para proyectos Rust con Cargo, en modo binario.
 

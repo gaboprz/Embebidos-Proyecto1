@@ -487,3 +487,9 @@ BBLAYERS ?= " \
 - Después se cocina la imagen mínima nuevamente. Con esta lista, se prueba dentro del VirtualBox, en donde se confirma el correcto funcionamiento de esta.
 
 ### Errores / Problemas
+
+## **Fecha: 02/04/2026** - **Participante: Gabriel**
+
+- Se revisa la documentación de Rust dentro del tutorial, además de releer la documentación de Yocto y de VirtualBox. Se corrigen algunos errores ortográficos y se añade la ruta de los códigos necesarios para la receta del laplaciano, esto en el tutorial de Yocto.
+
+### Errores / Problemas
