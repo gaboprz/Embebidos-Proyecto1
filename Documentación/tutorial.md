@@ -11,6 +11,8 @@ En la presente sección se describe la aplicación desarrollada en Rust que hace
 
 La aplicación recibe como argumento la ruta de un video, aplica el filtro Laplaciano sobre cada frame para detectar los bordes de las figuras geométricas presentes, y guarda el resultado en un archivo de video procesado. Dado que la imagen de Linux es mínima y no cuenta con entorno gráfico, la visualización del resultado se realiza mediante GStreamer, reproduciendo el archivo de salida generado por la aplicación.
 
+Para la construccion de la aplicacion se consultaron los repositorios de OpenCV-examples/laplace.cpp [[4]](#cite_4) y el repositorio OpenCv - Rust [[5]](#cite_5).
+
 El flujo de procesamiento es el siguiente:
 
 ```mermaid
@@ -120,10 +122,12 @@ __Descripción de cada parte__
 | `imgproc` | Contiene funciones de procesamiento de imágenes, como conversión a grises, filtros (Gaussiano, Laplaciano) y umbralización. |
 | `highgui` | Permite mostrar imágenes y video en ventanas, así como manejar eventos de teclado (`imshow`, `wait_key`). |
 
-```main.rs```:
+__Laplaciano en__ ```main.rs```:
+
 
 Posterior a editar el cargo se debe ir a la ruta ```scr/main.rs``` y agregar el código fuente que se encuentra en el archivo [main.rs](https://github.com/gaboprz/Embebidos-Proyecto1/blob/main/Rust/mi-app-opencv/src/main.rs) que contiene la lógica principal de la aplicación.
 
+El código que contiene ```main.rs``` fue hecho usando el chat de IA [[6]](#cite_6), tomando como referencia los repositorios consultados mencionados al inicio.
 
 __Función de cada sección del código__
 
@@ -167,6 +171,25 @@ Finalmente se abre una ventana de OpenCV con el video2 al cual se le aplica el L
 ## 2. Yocto Project
 
 Yocto es un proyecto de código abierto, el cual ayuda a crear sistemas totalmente personalizados basados en Linux, independientemente de la arquitectura del hardware, [[2]](#cite_2). Este permite crear imágenes hechas a la medida para distintas aplicaciones, entre estas, sistemas embebidos con capacidades limitadas, o simplemente un sistema en el que se quiere aprovechar la totalidad de los recursos en las aplicaciones de importancia, sin estar corriendo tareas innecesarias en segundo plano.
+
+A continuación se muestra el diagrama de flujo del proceso:
+
+```mermaid
+flowchart TD
+    A([Inicio del sistema]) --> B[Arranque de imagen Yocto]
+    B --> C[Herramientas disponibles: GStreamer + OpenCV + Rust]
+    C --> D[Video de entrada]
+    D --> E[Ejecución de app en Rust]
+    E --> F[Lectura frame a frame]
+    F --> G[Filtro Laplaciano]
+    G --> H[Frames procesados]
+    H --> I[Construcción de video]
+    I --> J[Video procesado]
+    J --> K[Reproducción con GStreamer]
+    K --> L([Visualización en pantalla])
+
+```
+
 
 ### 2.1 Yocto en máquina local
 
@@ -663,6 +686,26 @@ bitbake core-image-minimal
 
 Para probar el funcionamiento de la imagen que se diseñó, se va a utilizar la herramienta [Oracle VirtualBox](https://www.virtualbox.org/). Esta se puede descargar desde la página oficial.
 
+El flujo de proceso que se lleva a cabo en esta sección se describe en el siguiente diagrama de flujo:
+
+
+```mermaid
+flowchart TD
+    A([Inicio VM]) --> B[Arranque desde imagen Yocto]
+    B --> C[Menú GRUB]
+    C --> D[Login como root]
+    D --> E[Acceso a archivos del sistema]
+    E --> F[Video de entrada disponible]
+    F --> G[Ejecutar aplicación Rust]
+    G --> H[Procesamiento de video]
+    H --> I[Generación de video procesado]
+    I --> J[Guardar en /tmp]
+    J --> K[Selección de video a reproducir]
+    K --> L[Reproducción con GStreamer]
+    L --> M([Visualización en pantalla])
+```
+
+
 ### 3.1 Configuración de la máquina virtual
 
 En la presente sección se van a mostrar los distintos pasos que permiten crear y configurar correctamente la máquina virtual.
@@ -823,3 +866,6 @@ reproducir_video /tmp/video_procesado.avi
 
 <a id="cite_5"></a>
 [5] M. Nizhegorodov, "Rust bindings for OpenCV 3 & 4," (versión 0.94), [Software], 2026. Disponible en: https://github.com/twistedfall/opencv-rust. [Accedido: 01-abr-2026].
+
+<a id="cite_6"></a>
+[6] Anthropic, "Claude," (versión 2026), [Software], 2026. Disponible en: https://claude.ai/new. [Accedido: 02-abr-2026].
