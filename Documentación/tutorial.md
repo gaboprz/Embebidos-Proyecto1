@@ -3,13 +3,174 @@
 
 En el presente documento se muestra el paso a paso que permite replicar los resultados obtenidos en el proyecto I del curso. En este se logra diseñar una imagen basada en Linux, la cual está hecha a la medida para poder soportar archivos multimedia y poder entonces aplicarles un código basado en Rust y OpenCV para poder obtener un resultado también en formato de multimedia, [[1]](#cite_1). Los dos enfoques principales es la de la correcta configuración del ambiente de Yocto Project, además de la explicación de la aplicación en sí, la cual se escribe en Rust y utiliza OpenCV.
 
-## 1. Yocto Project
+## 1. Aplicación en Rust con OpenCV
+
+En la presente sección se describe la aplicación desarrollada en Rust que hace uso de la biblioteca OpenCV para procesar un video mediante el filtro Laplaciano. Esta aplicación forma parte de la imagen de Linux generada con Yocto Project que sera ejecutada dentro de la máquina virtual.
+
+### 1.1 Descripción general
+
+La aplicación recibe como argumento la ruta de un video, aplica el filtro Laplaciano sobre cada frame para detectar los bordes de las figuras geométricas presentes, y guarda el resultado en un archivo de video procesado. Dado que la imagen de Linux es mínima y no cuenta con entorno gráfico, la visualización del resultado se realiza mediante GStreamer, reproduciendo el archivo de salida generado por la aplicación.
+
+El flujo de procesamiento es el siguiente:
+
+```mermaid
+flowchart TD
+    A([Inicio]) --> B[Video de entrada]
+    B --> C[Frame a frame]
+    C --> D[Conversión a grises]
+    D --> E[Suavizado Gaussiano]
+    E --> F[Filtro Laplaciano]
+    F --> G[Umbral]
+    G --> H[Superposición sobre frame original]
+    H --> I([Video de salida])
+```
+### 1.2 Instalación de dependencias de OpenCv en el sistema
+
+El siguiente comando instala las dependencias necesarias para compilar y ejecutar aplicaciones en Rust que utilizan OpenCV:
+
+```bash
+sudo apt install -y \
+  build-essential cmake pkg-config ninja-build \
+  libopencv-dev libgtk-3-dev libv4l-dev \
+  libavcodec-dev libavformat-dev libswscale-dev \
+  clang libclang-dev libstdc++-14-dev
+```
+
+**Descripción de los paquetes**
+
+- __Herramientas de compilación:__
+	- ```build-essential```: Compiladores básicos (_gcc_, _g++_) y herramientas esenciales.
+	- ```cmake```, ```ninja-build```, ```pkg-config```: Herramientas para configurar y gestionar la compilación del proyecto.
+- __OpenCV y soporte gráfico:__
+	- ```libopencv-dev```: Librerías de desarrollo de OpenCV.
+	- ```libgtk-3-dev```: Soporte para interfaces gráficas (ventanas de visualización).
+	- ```libv4l-dev```: Soporte para dispositivos de video (cámaras).
+- __Procesamiento de video:__
+	- ```libavcodec-dev```, ```libavformat-dev```, ```libswscale-dev```: Librerías de FFmpeg para codificación, decodificación y procesamiento de video.
+
+- __Compilador y bindings para Rust:__
+	- ```clang```, ```libclang-dev```: Necesarios para generar bindings entre Rust y OpenCV.
+	- ```libstdc++-14-dev```: Librería estándar de C++ requerida por OpenCV.
+
+### 1.3 Instalación de Rust
+
+Para instalar Rust, se utiliza el instalador oficial proporcionado por *rustup*. Ejecuta los siguientes comandos en la terminal:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+
+# Verificar instalación
+rustc --version
+cargo --version
+```
+### 1.4 Crear proyecto en Rust
+
+Para crear el proyecto en Rust se requiere seguir los siguientes comandos:
+
+```bash
+# Creacion del proyecto mi-app-opencv
+cargo new mi-app-opencv
+
+# Ruta del proyectp
+cd mi-app-opencv
+```
+__Descripción__
+
+- ```cargo new mi-app-opencv```:
+Crea un nuevo proyecto en Rust llamado mi-app-opencv. Este comando genera automáticamente la estructura básica del proyecto, incluyendo el archivo Cargo.toml y el directorio src/ con un archivo main.rs.
+- ```cd mi-app-opencv```:
+Cambia el directorio actual en la terminal hacia la carpeta del proyecto recién creado, permitiendo trabajar dentro de él.
+
+__Estructura del proyecto:__
+
+Cuando se crea el proyecto, su estructura debe ser asi:
+
+```
+mi-app-opencv/
+├── Cargo.toml       # dependencias del proyecto
+├── Cargo.lock       # versiones exactas (generado automaticamente)
+└── src/
+    └── main.rs      # codigo principal
+```
+
+__Dependencias de__ ```Cargo.toml```
+
+El archivo ```Cargo.toml``` se debe editar e incluir la libreria _OpenCV_ en el proyecto Rust, permitiendo utilzar sus funciones para procesamiento de imagenes y video. Esta dependencia es importandte dado que sin ella, no sería posible utilizar OpenCV desde Rust.
+
+Se debe abrir el archivo ```Cargo.toml``` y agregar la siguiente dependencia de OpenCV:
+
+```
+[package]
+name = "mi-app-opencv"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+opencv = { version = "0.93", features = ["videoio", "imgproc", "highgui"] }
+```
+__Descripción de cada parte__
+
+| Elemento | Descripción |
+|----------|-------------|
+| `opencv` | Es el nombre del crate (paquete) que proporciona los bindings de OpenCV para Rust. |
+| `version = "0.93"` | Especifica la versión de la librería que se utilizará, asegurando compatibilidad y estabilidad. |
+| `features` | Indica qué módulos de OpenCV se habilitan en el proyecto. |
+| `videoio` | Permite trabajar con captura de video (archivos o cámara), utilizando `VideoCapture`. |
+| `imgproc` | Contiene funciones de procesamiento de imágenes, como conversión a grises, filtros (Gaussiano, Laplaciano) y umbralización. |
+| `highgui` | Permite mostrar imágenes y video en ventanas, así como manejar eventos de teclado (`imshow`, `wait_key`). |
+
+```main.rs```:
+
+Posteriror a editar el cargo se debe ir a la ruta ```scr/main.rs``` y agregar el codigo fuente que se encuentra en el archivo [main.rs](https://github.com/gaboprz/Embebidos-Proyecto1/blob/main/Rust/mi-app-opencv/src/main.rs) que contiene la lógica principal de la aplicación. 
+
+
+__Función de cada sección del código__
+
+| Sección               | Descripción |
+|-----------------------|-------------|
+| **Argumentos** | El programa utiliza directamente el archivo `"video2.mp4"` como entrada, el cual debe estar ubicado en el mismo directorio del proyecto OpenCV - Rust para que pueda ser abierto correctamente. |
+| **Apertura del video** | Se utiliza `videoio::VideoCapture::from_file` para cargar el video de entrada. Se verifica que la apertura sea exitosa mediante `is_opened()`, y en caso contrario se genera un error. |
+| **Lectura de frames** | Dentro de un bucle `loop`, se leen los frames uno a uno usando `cam.read()`. El proceso termina cuando el frame está vacío, indicando el fin del video. |
+| **Visualización** | Se crea una ventana con `highgui::named_window` y se muestran los resultados en tiempo real usando `highgui::imshow`. |
+| **Conversión a grises** | Cada frame se convierte de formato BGR a escala de grises mediante `imgproc::cvt_color_def`, reduciendo la imagen a un solo canal para facilitar el procesamiento. |
+| **Suavizado Gaussiano** | Se aplica un filtro Gaussiano con un kernel de 5x5 usando `imgproc::gaussian_blur`, con el fin de reducir el ruido antes de la detección de bordes. |
+| **Filtro Laplaciano** | Se utiliza `imgproc::laplacian` con tipo `CV_16S` para detectar bordes, evitando desbordamientos al trabajar con valores negativos y positivos. |
+| **Conversión de escala** | El resultado del Laplaciano se convierte a valores absolutos de 8 bits mediante `core::convert_scale_abs`, obteniendo una imagen adecuada para visualización. |
+| **Umbral** | Se aplica un umbral binario con `imgproc::threshold` para eliminar ruido residual y conservar únicamente los bordes más significativos. |
+| **Superposición** | Los bordes se convierten nuevamente a BGR y se combinan con el frame original mediante `core::add`, resaltando los bordes sobre la imagen original. |
+| **Control de salida** | El programa permite finalizar la ejecución al presionar la tecla `'q'` o `ESC`, utilizando `highgui::wait_key`. |
+
+El video que vamos a cargar en el ```main.rs``` debe de estar en la misma ruta del proyecto que creamos, es decir, dentro de la carpeta del proyecto llamada ```mi-app-opencv```
+
+La estructura final del proyecto deberia ser asi:
+
+```
+mi-app-opencv/
+├── Cargo.toml       # dependencias del proyecto
+├── Cargo.lock       # versiones exactas (generado automaticamente)
+├── video2.mp4       # video de entrada con figuras geometricas
+└── src/
+    └── main.rs      # codigo principal
+```
+
+ Una vez confirmemos la estructura final del proyecto podemos proceder a compilar y ejecutar la aplicacion, para esto se usa el siguiente comando:
+ 
+```bash
+cargo run
+```
+
+Finalmente se habre una ventana de OpenCV con el video2 al cual se le aplica el Laplaciano.
+
+
+
+## 2. Yocto Project
 
 Yocto es un proyecto de código abierto, el cual ayuda a crear sistemas totalmente personalizados basados en Linux, independientemente de la arquitectura del hardware, [[2]](#cite_2). Este permite crear imágenes hechas a la medida para distintas aplicaciones, entre estas, sistemas embebidos con capacidades limitadas, o simplemente un sistema en el que se quiere aprovechar la totalidad de los recursos en las aplicaciones de importancia, sin estar corriendo tareas innecesarias en segundo plano.
 
-### 1.1 Yocto en máquina local
+### 2.1 Yocto en máquina local
 
-Lo primero que hay que hacer es preparar el ambiente que va a permitir generar las imágenes personalizadas. Para esto se va a seguir la página oficial de [Yocto](https://docs.yoctoproject.org/kirkstone/brief-yoctoprojectqs/index.html). Importante que hay que cumplir con algunos requisitos mínimos, como tener Git 1.8.3.1 o más nuevo, Python 3.6.0 o más reciente, entre otros.
+Lo primero que hay que hacer es preparar el ambiente que va a permitir generar las imágenes personalizadas. Este tutorial sigue los pasos de la documentación oficial de [Yocto](https://docs.yoctoproject.org/kirkstone/brief-yoctoprojectqs/index.html), los cuales ya están incluidos aquí. Importante que hay que cumplir con algunos requisitos mínimos, como tener Git 1.8.3.1 o más nuevo, Python 3.6.0 o más reciente, entre otros.
 
 Se va a usar la versión de **Kirkstone 4.0.34**. Para esto se debe ejecutar el comando:
 
@@ -72,13 +233,13 @@ Ya con el ambiente preparado, es importante comprobar que la instalación de tod
 source oe-init-build-env
 
 # Cocina una imagen mínima
-bitbake core-image-sato
+bitbake core-image-minimal
 
 # Se simula el funcionamiento de la imagen usando QEMU
 runqemu qemux86-64
 ```
 
-### 1.2 Sistema objetivo
+### 2.2 Sistema objetivo
 
 Hay que especificar el sistema o la arquitectura del SO para la que se quiere diseñar la imagen. Para hacer esto, hay que acceder al archivo `local.conf`, el cual se encuentra en la ruta:
 
@@ -99,7 +260,7 @@ MACHINE ??= "qemux86-64"
 ```
 Con esto se indica que la imagen debe ser compatible con la arquitectura x86 de 64 bits, esto en un estilo genérico. La otra línea se deja sin comentar, dado que es la opción por defecto, en caso de que las demás líneas estén comentadas.
 
-### 1.3 Capas (***Layers***) necesarias
+### 2.3 Capas (***Layers***) necesarias
 
 Las capas, dentro del contexto de Yocto Project, son conjuntos de recetas disponibles, las cuales se pueden importar a la imagen objetivo, esto para darle capacidades específicas. Las capas incluidas al proyecto se encuentran en el archivo `bblayers.conf`, el cual se encuentra en la ruta:
 
@@ -192,7 +353,7 @@ git clone -b kirkstone https://github.com/kraj/meta-clang.git
 bitbake-layers add-layer ../meta-clang
 ```
 
-### 1.4 Recetas (***Recipes***) necesarias
+### 2.4 Recetas (***Recipes***) necesarias
 
 Las recetas son las instrucciones precisas que le dicen al sistema cómo cocinar un componente específico de software, en este caso, cómo cocinar la imagen. Estas se encuentran en un archivo de texto con extensión .bb. Este contiene metadatos y una serie de pasos lógicos que describen el ciclo de vida de un paquete de software. Estas indican dónde está el código fuente, qué dependencias deben estar listas antes de empezar a compilar el componente, ejecuta comandos necesarios para la compilación y genera archivos finales (binarios, archivos de configuración, entre otros).
 
@@ -445,7 +606,7 @@ source oe-init-build-env
 bitbake video-player-cmd
 ```
 
-### 1.5 Configuraciones varias
+### 2.5 Configuraciones varias
 
 Dentro del archivo `local.conf` es necesario agregar algunas líneas. El final de este archivo debe verse como:
 
@@ -485,7 +646,7 @@ LICENSE_FLAGS_ACCEPTED = "commercial"
 
 `LICENSE_FLAGS_ACCEPTED`: Permite incluir paquetes marcados como licencia comercial o restringida. Esta se usa dado que GStreamer lo necesita.
 
-### 1.6 Generación de la imagen
+### 2.6 Generación de la imagen
 
 Ya con todas las configuraciones anteriores realizadas, queda generar la imagen. En este caso se busca crear una imagen mínima, dado que se quiere que esta tenga el menor tamaño posible. Para esto se deben usar los siguientes comandos:
 
@@ -497,11 +658,12 @@ source oe-init-build-env
 bitbake core-image-minimal
 ```
 
-## 2. Máquina Virtual
+
+## 3. Máquina Virtual
 
 Para probar el funcionamiento de la imagen que se diseñó, se va a utilizar la herramienta [Oracle VirtualBox](https://www.virtualbox.org/). Esta se puede descargar desde la página oficial.
 
-### 2.1 Configuración de la máquina virtual
+### 3.1 Configuración de la máquina virtual
 
 En la presente sección se van a mostrar los distintos pasos que permiten crear y configurar correctamente la máquina virtual.
 
@@ -591,7 +753,7 @@ Luego se hace click en el botón ***Seleccionar***. Finalmente se hace click sob
   <figcaption style="font-style: italic; color: #666;"></figcaption>
 </figure>
 
-### 2.2 Dentro de la máquina virtual
+### 3.2 Dentro de la máquina virtual
 
 Para abrir la máquina virtual se debe hacer doble click sobre esta. Se abrirá una pestaña que nos permite interactuar con la VM. Lo primero que debería aparecer es un menú de ***GRUB***, al cual hay que dar ***Enter*** para seguir.
 
@@ -655,3 +817,9 @@ reproducir_video /tmp/video_procesado.avi
 
 <a id="cite_3"></a>
 [3] OpenAI, "ChatGPT," (versión Mar 29), [Software], 2026. Disponible en: https://chatgpt.com/. [Accedido: 29-mar-2026].
+
+<a id="cite_4"></a>
+[4] OpenCV Developers, "Laplacian Operator Sample Code (laplace.cpp)," (versión 4.x), [Software], 2024. Disponible en: https://docs.opencv.org/4.x/d6/ddf/samples_2cpp_2laplace_8cpp-example.html. [Accedido: 01-abr-2026].
+
+<a id="cite_5"></a>
+[5] M. Nizhegorodov, "Rust bindings for OpenCV 3 & 4," (versión 0.94), [Software], 2026. Disponible en: https://github.com/twistedfall/opencv-rust. [Accedido: 01-abr-2026].
