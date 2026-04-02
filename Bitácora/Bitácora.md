@@ -462,3 +462,34 @@ BBLAYERS ?= " \
 
 ### Errores / Problemas
 - En un descuido se creó la imagen sin haber cambiado la receta del reconocimiento de colores, por lo que se agregó nuevamente la de python en lugar de la de rust.
+
+
+## **Fecha: 29/03/2026** - **Participante: Gabriel**
+
+- Se crea un archivo REAME para describir de manera general el repositorio del proyecto.
+- También se inicia el archivo tutorial. En este se avanza en la parte relacionada con el Yocto, desde la creación del poky, hasta las capas que se usan para la elaboración de la imagen.
+
+### Errores / Problemas
+
+
+## **Fecha: 30/03/2026** - **Participante: Gabriel**
+
+- Se revisa el avanza realizado el día anterior.
+- Se termina la parte de Yocto en el tutorial, siendo esto agregar la sección de las recetas, una con configuraciones generales usadas en `local.conf` y la creación propiamente de la imagen mínima.
+- Luego se inicia y acaba la parte dedicada a la herramienta Oracle VirtualBox.
+
+### Errores / Problemas
+
+## **Fecha: 31/03/2026** - **Participante: Gabriel**
+
+- Ya se tiene el código en rust del laplaciano, que es la aplicación que se busca implementar dentro de la máquina virtual. Este se encuentra funcional para la computadora local, pero se debe adaptar para funcionar sin interfaz gráfica, por lo que se le quitan las funciones que usan `highgui`. También se hace que como resultante genere un video procesado por el código.
+- Luego de tener el código y los archivos de cargo listos, se crea la receta de manera similar a la última de rust, la que detecta colores. Lo primero es crear el árbol de carpetas, ajustando los nombres. Luego se añade el contenido del main y los cargo en su respectivo equivalente. Después se pone a cocinar la receta y se añade dentro del `local.conf`.
+- Después se cocina la imagen mínima nuevamente. Con esta lista, se prueba dentro del VirtualBox, en donde se confirma el correcto funcionamiento de esta.
+
+### Errores / Problemas
+
+## **Fecha: 02/04/2026** - **Participante: Gabriel**
+
+- Se revisa la documentación de Rust dentro del tutorial, además de releer la documentación de Yocto y de VirtualBox. Se corrigen algunos errores ortográficos y se añade la ruta de los códigos necesarios para la receta del laplaciano, esto en el tutorial de Yocto.
+
+### Errores / Problemas
