@@ -74,9 +74,11 @@ Este ejemplo contiene lo fundamental solicitado para el proyecto.
 * **NO**: Criterio no cumplido
 
 
+---
 
-| __Se da inicio la creacion de la app.__ |
-| :--- | 
+## **Fecha: 23/03/26** - **Participante: Katherine**
+
+Se da inicio a la creación de la app.
 
 __Actividades realizadas:__
 
@@ -84,8 +86,8 @@ __Actividades realizadas:__
 
 Se instalaron las herramientas necesarias para el desarrollo de la aplicación en Ubuntu 24.04:
 
-* Rust `1.94.0` via rustup
-* OpenCV `4.6.0` via `apt`
+* Rust `1.94.0` vía rustup  
+* OpenCV `4.6.0` vía `apt`  
 * Dependencias del sistema: `build-essential`, `cmake`, `pkg-config`, `libopencv-dev`, `libgtk-3-dev`, `libv4l-dev`, `clang`, `libclang-dev`, `libstdc++-14-dev`
 
 - __2. Creación del proyecto base en Rust:__
@@ -100,7 +102,7 @@ Se implementó el código base en `src/main.rs` con la tríada funcional complet
 * Procesamiento: conversión a escala de grises (`cvt_color_def`)
 * Visualización en tiempo real (`imshow`)
 
-La aplicación compiló y ejecutó correctamente mostrando la cámara en escala de grises en tiempo real.
+La aplicación compiló y ejecutó correctamente, mostrando la cámara en escala de grises en tiempo real.
 
 ### Problemas encontrados y soluciones
 
@@ -112,5 +114,87 @@ La aplicación compiló y ejecutó correctamente mostrando la cámara en escala 
 ### Próximos pasos
 
 * Agregar el filtro Laplaciano basado en `laplace.cpp`
-* Expandir la app con múltiples casos de uso
-* Documentar las dependencias del sistema con `ldd`
+
+---
+
+## **Fecha: 30/03/26** - **Participante: Katherine**
+
+### Actividades
+
+1. **Implementación del Laplaciano** 
+
+- Se modificó el código de `main.rs`, donde se implementó en *Rust* el Laplaciano. Se hicieron varias pruebas para verificar su funcionamiento, tales como:
+    - Escala a grises con identificación de bordes aplicando el Laplaciano usando la cámara en vivo de la laptop.
+    - Identificación de colores usando el Laplaciano con cámara en vivo.
+
+El objetivo de las pruebas fue familiarizarse con el código, el filtro y las máscaras, además de hacer ajustes en los bordes y buscar un valor en los parámetros para disminuir el ruido, puesto que el Laplaciano es sensible al ruido por valores muy bajos y se quiere evitar ver este ruido en la aplicación.
+    
+
+2. **Modificación del Laplaciano para cargar video**
+
+- Se modificó el código para cargar el video que usaba Gabriel.
+- Se aplicó el Laplaciano en el video.
+- Se hicieron pruebas usando el Laplaciano sobre el video, como:
+    - Video en negro donde solamente se identifican los bordes de las figuras con el Laplaciano.
+    - Video original aplicando el Laplaciano.
+
+### Problemas encontrados
+
+A pesar de haber hecho pruebas para evitar ver ruido, se detectó ruido en las figuras; las figuras con tonos suaves se observaban con mayor ruido.
+
+### Solución
+
+Se usó:
+
+- 1. Suavizado gaussiano (antes del Laplaciano)
+```rust
+imgproc::gaussian_blur(
+    &gray, &mut blur,
+    core::Size::new(5, 5),  // kernel 5x5
+    0.0, 0.0,
+    core::BORDER_DEFAULT,
+)?;
+```
+
+- 2. Umbral binario (después del Laplaciano)
+```rust
+imgproc::threshold(
+    &bordes, &mut bordes_limpios,
+    30.0,   // valor umbral
+    255.0,
+    imgproc::THRESH_BINARY,
+)?;
+```
+
+En resumen, el flujo sería:
+
+Imagen → Gaussian Blur (elimina ruido ANTES)  
+       → Laplaciano  
+       → Threshold (elimina ruido DESPUÉS)  
+       → Bordes limpios
+       
+__Evidencia:__
+
+- 1. En [Ruido](https://github.com/gaboprz/Embebidos-Proyecto1/blob/main/Bit%C3%A1cora/Im%C3%A1genes/Ruido.png) se pueden observar las figuras aplicando el Laplaciano y se observa alrededor del borde el ruido.
+
+- 2. En [Sin-ruido](https://github.com/gaboprz/Embebidos-Proyecto1/blob/main/Bit%C3%A1cora/Im%C3%A1genes/Sin-ruido.png) se puede observar que la solución encontrada para eliminar el ruido en el Laplaciano tuvo éxito.
+ 
+---
+
+## **Fecha: 31/03/26** - **Participante: Katherine**
+
+Se inicia la prueba del tutorial en Yocto.
+
+---
+
+## **Fecha: 01/04/26** - **Participante: Katherine**
+
+- Se continúa con el tutorial  
+- Se termina el tutorial  
+- Se inicia con la documentación de Rust  
+
+---
+
+## **Fecha: 02/04/26** - **Participante: Katherine**  
+
+Se termina la documentación
